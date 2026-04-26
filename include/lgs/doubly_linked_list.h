@@ -17,20 +17,20 @@
     Unpack and Helpers
 */
 
-#define INSTANCE   RIFF_FIRST(T)
-#define STORED     RIFF_SECOND(T)
-#define DESTRUCTOR RIFF_THIRD(T)
+#define INSTANCE   LGS_FIRST(T)
+#define STORED     LGS_SECOND(T)
+#define DESTRUCTOR LGS_THIRD(T)
 
 /*
     Typedef
 */
 
 // Doubly linked list (dlist) node
-#define dlist_node(inst) RIFF_INST(dlist_node, inst)
+#define dlist_node(inst) LGS_INST(dlist_node, inst)
 
 // Double-linked list (dlist)
 // O(n) memory complexity
-#define dlist(inst) RIFF_INST(dlist, inst)
+#define dlist(inst) LGS_INST(dlist, inst)
 
 typedef struct dlist_node(INSTANCE) {
     STORED                priv_obj;
@@ -50,9 +50,9 @@ typedef struct dlist(INSTANCE) {
 
 // Makes uninitialized memory proper 0-initialized empty list
 // Does not free anything
-#define dlist_zero(inst) RIFF_INST(dlist_zero, inst)
+#define dlist_zero(inst) LGS_INST(dlist_zero, inst)
 
-RIFF_API(void) dlist_zero(INSTANCE)(dlist(INSTANCE)* tar) {
+LGS_API(void) dlist_zero(INSTANCE)(dlist(INSTANCE)* tar) {
     tar->priv_size  = 0;
     tar->priv_first = NULL;
     tar->priv_last  = NULL;
@@ -60,14 +60,14 @@ RIFF_API(void) dlist_zero(INSTANCE)(dlist(INSTANCE)* tar) {
 
 
 // Free allocated memory, destroys owned objects
-#define dlist_destroy(inst) RIFF_INST(dlist_destroy, inst)
+#define dlist_destroy(inst) LGS_INST(dlist_destroy, inst)
 
-RIFF_API(void) dlist_destroy(INSTANCE)(dlist(INSTANCE)* tar) {
+LGS_API(void) dlist_destroy(INSTANCE)(dlist(INSTANCE)* tar) {
     dlist_node(INSTANCE)* cur = tar->priv_first;
     while (cur) {
         dlist_node(INSTANCE)* next = cur->priv_next;
         DESTRUCTOR(&cur->priv_obj); // destroy object
-        RIFF_FREE(cur); // free node
+        LGS_FREE(cur); // free node
         cur = next;
     }
 
@@ -80,9 +80,9 @@ RIFF_API(void) dlist_destroy(INSTANCE)(dlist(INSTANCE)* tar) {
 
 // Returns list size
 // O(1)
-#define dlist_size(inst) RIFF_INST(dlist_size, inst)
+#define dlist_size(inst) LGS_INST(dlist_size, inst)
 
-RIFF_API(size_t) dlist_size(INSTANCE)(const dlist(INSTANCE)* tar) {
+LGS_API(size_t) dlist_size(INSTANCE)(const dlist(INSTANCE)* tar) {
     return tar->priv_size;
 }
 
@@ -93,9 +93,9 @@ RIFF_API(size_t) dlist_size(INSTANCE)(const dlist(INSTANCE)* tar) {
 // Returns pointer to the first node in the list
 // NULL if list is empty
 // O(1)
-#define dlist_first(inst) RIFF_INST(dlist_first, inst)
+#define dlist_first(inst) LGS_INST(dlist_first, inst)
 
-RIFF_API(dlist_node(INSTANCE)*) dlist_first(INSTANCE)(const dlist(INSTANCE)* tar) {
+LGS_API(dlist_node(INSTANCE)*) dlist_first(INSTANCE)(const dlist(INSTANCE)* tar) {
     return tar->priv_first;
 }
 
@@ -103,9 +103,9 @@ RIFF_API(dlist_node(INSTANCE)*) dlist_first(INSTANCE)(const dlist(INSTANCE)* tar
 // Returns pointer to the last node in the list
 // NULL if list is empty
 // O(1)
-#define dlist_last(inst) RIFF_INST(dlist_last, inst)
+#define dlist_last(inst) LGS_INST(dlist_last, inst)
 
-RIFF_API(dlist_node(INSTANCE)*) dlist_last(INSTANCE)(const dlist(INSTANCE)* tar) {
+LGS_API(dlist_node(INSTANCE)*) dlist_last(INSTANCE)(const dlist(INSTANCE)* tar) {
     return tar->priv_last;
 }
 
@@ -113,9 +113,9 @@ RIFF_API(dlist_node(INSTANCE)*) dlist_last(INSTANCE)(const dlist(INSTANCE)* tar)
 // Returns NULL if given pointer was last node in the list
 // Returns NULL if passed NULL
 // O(1)
-#define dlist_next(inst) RIFF_INST(dlist_next, inst)
+#define dlist_next(inst) LGS_INST(dlist_next, inst)
 
-RIFF_API(dlist_node(INSTANCE)*) dlist_next(INSTANCE)(dlist_node(INSTANCE)* n) {
+LGS_API(dlist_node(INSTANCE)*) dlist_next(INSTANCE)(dlist_node(INSTANCE)* n) {
     return n ? n->priv_next : NULL;
 }
 
@@ -124,9 +124,9 @@ RIFF_API(dlist_node(INSTANCE)*) dlist_next(INSTANCE)(dlist_node(INSTANCE)* n) {
 // Returns NULL if given pointer was first node in the list
 // Returns NULL if passed NULL
 // O(1)
-#define dlist_prev(inst) RIFF_INST(dlist_prev, inst)
+#define dlist_prev(inst) LGS_INST(dlist_prev, inst)
 
-RIFF_API(dlist_node(INSTANCE)*) dlist_prev(INSTANCE)(dlist_node(INSTANCE)* n) {
+LGS_API(dlist_node(INSTANCE)*) dlist_prev(INSTANCE)(dlist_node(INSTANCE)* n) {
     return n ? n->priv_prev : NULL;
 }
 
@@ -134,18 +134,18 @@ RIFF_API(dlist_node(INSTANCE)*) dlist_prev(INSTANCE)(dlist_node(INSTANCE)* n) {
 // Returns pointer to the object stored inside the given node
 // Do not invalidate the object, as the destructor (if provided) will be called on it sooner or later
 // O(1)
-#define dlist_access(inst) RIFF_INST(dlist_access, inst)
+#define dlist_access(inst) LGS_INST(dlist_access, inst)
 
-RIFF_API(STORED*) dlist_access(INSTANCE)(dlist_node(INSTANCE)* n) {
+LGS_API(STORED*) dlist_access(INSTANCE)(dlist_node(INSTANCE)* n) {
     return &n->priv_obj;
 }
 
 
 // Returns read only pointer to the object stored inside the given node
 // O(1)
-#define dlist_const_access(inst) RIFF_INST(dlist_const_access, inst)
+#define dlist_const_access(inst) LGS_INST(dlist_const_access, inst)
 
-RIFF_API(const STORED*) dlist_const_access(INSTANCE)(dlist_node(INSTANCE)* n) {
+LGS_API(const STORED*) dlist_const_access(INSTANCE)(dlist_node(INSTANCE)* n) {
     return &n->priv_obj;
 }
 
@@ -158,14 +158,14 @@ RIFF_API(const STORED*) dlist_const_access(INSTANCE)(dlist_node(INSTANCE)* n) {
 // (it gets pushed before exclusive list end)
 // Takes ownership of object at success
 // May fail allocation, returns NULL on fail, valid node pointer otherwise, O(1)
-#define dlist_push_before(inst) RIFF_INST(dlist_push_before, inst)
+#define dlist_push_before(inst) LGS_INST(dlist_push_before, inst)
 
-RIFF_API(dlist_node(INSTANCE)*) dlist_push_before(INSTANCE)(
+LGS_API(dlist_node(INSTANCE)*) dlist_push_before(INSTANCE)(
     dlist(INSTANCE)*        tar, 
     dlist_node(INSTANCE)*   before, 
     STORED                  value
 ) {
-    dlist_node(INSTANCE)* new_node = (dlist_node(INSTANCE)*)RIFF_ALLOC(sizeof(dlist_node(INSTANCE)));
+    dlist_node(INSTANCE)* new_node = (dlist_node(INSTANCE)*)LGS_ALLOC(sizeof(dlist_node(INSTANCE)));
     if (!new_node) return NULL;
 
     new_node->priv_obj = value;
@@ -201,14 +201,14 @@ RIFF_API(dlist_node(INSTANCE)*) dlist_push_before(INSTANCE)(
 // (it gets pushed after exclusive list begin)
 // Takes ownership of object at success
 // May fail allocation, returns NULL on fail, node valid pointer otherwise, O(1)
-#define dlist_push_after(inst) RIFF_INST(dlist_push_after, inst)
+#define dlist_push_after(inst) LGS_INST(dlist_push_after, inst)
 
-RIFF_API(dlist_node(INSTANCE)*) dlist_push_after(INSTANCE)(
+LGS_API(dlist_node(INSTANCE)*) dlist_push_after(INSTANCE)(
     dlist(INSTANCE)*        tar, 
     dlist_node(INSTANCE)*   after, 
     STORED                  value
 ) {
-    dlist_node(INSTANCE)* new_node = (dlist_node(INSTANCE)*)RIFF_ALLOC(sizeof(dlist_node(INSTANCE)));
+    dlist_node(INSTANCE)* new_node = (dlist_node(INSTANCE)*)LGS_ALLOC(sizeof(dlist_node(INSTANCE)));
     if (!new_node) return NULL;
 
     new_node->priv_obj = value;
@@ -243,9 +243,9 @@ RIFF_API(dlist_node(INSTANCE)*) dlist_push_after(INSTANCE)(
 // If out == NULL destructor will be called on contained object
 // Otherwise *out = element, caller gets ownership over object and destructor will not be called
 // O(1)
-#define dlist_pop(inst) RIFF_INST(dlist_pop, inst)
+#define dlist_pop(inst) LGS_INST(dlist_pop, inst)
 
-RIFF_API(void) dlist_pop(INSTANCE)(dlist(INSTANCE)* tar, dlist_node(INSTANCE)* n, STORED* out) {
+LGS_API(void) dlist_pop(INSTANCE)(dlist(INSTANCE)* tar, dlist_node(INSTANCE)* n, STORED* out) {
     // get rid of object
     if (out) *out = n->priv_obj;
     else DESTRUCTOR(&n->priv_obj);
@@ -260,15 +260,15 @@ RIFF_API(void) dlist_pop(INSTANCE)(dlist(INSTANCE)* tar, dlist_node(INSTANCE)* n
 
     // Decrease size and free
     tar->priv_size--;
-    RIFF_FREE(n);
+    LGS_FREE(n);
 }
 
 
 // Clears list
 // O(1), with destructors O(n)
-#define dlist_clear(inst) RIFF_INST(dlist_clear, inst)
+#define dlist_clear(inst) LGS_INST(dlist_clear, inst)
 
-RIFF_API(void) dlist_clear(INSTANCE)(dlist(INSTANCE)* tar) {
+LGS_API(void) dlist_clear(INSTANCE)(dlist(INSTANCE)* tar) {
     dlist_destroy(INSTANCE)(tar); // apparently the same
 }
 
