@@ -21,13 +21,13 @@
     Unpack and Helpers
 */
 
-#define INSTANCE RIFF_FIRST(T)
-#define KEY      RIFF_SECOND(T)
-#define KEY_DEST RIFF_THIRD(T)
-#define VAL      RIFF_FOURTH(T)
-#define VAL_DEST RIFF_FIFTH(T)
-#define HASH     RIFF_SIXTH(T)
-#define EQUAL    RIFF_SEVENTH(T)
+#define INSTANCE LGS_FIRST(T)
+#define KEY      LGS_SECOND(T)
+#define KEY_DEST LGS_THIRD(T)
+#define VAL      LGS_FOURTH(T)
+#define VAL_DEST LGS_FIFTH(T)
+#define HASH     LGS_SIXTH(T)
+#define EQUAL    LGS_SEVENTH(T)
 
 #define HASH_NONE 0
 #define HASH_FULL 1
@@ -43,7 +43,7 @@
 // Hash map implementation with linear probing.
 // Allow for avg. O(1) access to elements by it's keys.
 // O(n) memory complexity
-#define hhmap(inst) RIFF_INST(hhmap, inst)
+#define hhmap(inst) LGS_INST(hhmap, inst)
 
 typedef struct hhmap(INSTANCE) {
     char*   priv_used;
@@ -59,9 +59,9 @@ typedef struct hhmap(INSTANCE) {
 
 // Makes unitialized memory proper 0-initialized empty hashhmap
 // Does not free anything
-#define hhmap_zero(inst) RIFF_INST(hhmap_zero, inst)
+#define hhmap_zero(inst) LGS_INST(hhmap_zero, inst)
 
-RIFF_API(void) RIFF_INST(hhmap_zero, INSTANCE)(hhmap(INSTANCE)* tar) {
+LGS_API(void) LGS_INST(hhmap_zero, INSTANCE)(hhmap(INSTANCE)* tar) {
     tar->priv_used   = 0;
     tar->priv_keys   = 0;
     tar->priv_values = 0;
@@ -71,9 +71,9 @@ RIFF_API(void) RIFF_INST(hhmap_zero, INSTANCE)(hhmap(INSTANCE)* tar) {
 
 // Frees hashhmap and its keys and values
 // O(n)
-#define hhmap_destroy(inst) RIFF_INST(hhmap_destroy, inst)
+#define hhmap_destroy(inst) LGS_INST(hhmap_destroy, inst)
 
-RIFF_API(void) RIFF_INST(hhmap_destroy, INSTANCE)(hhmap(INSTANCE) *tar) {
+LGS_API(void) LGS_INST(hhmap_destroy, INSTANCE)(hhmap(INSTANCE) *tar) {
     // call destructors
     for (size_t i = 0; i < tar->priv_capc; i++) {
         if (tar->priv_used[i] == HASH_FULL) {
@@ -83,9 +83,9 @@ RIFF_API(void) RIFF_INST(hhmap_destroy, INSTANCE)(hhmap(INSTANCE) *tar) {
     }
 
     // free memory
-    if (tar->priv_used)   RIFF_FREE(tar->priv_used);
-    if (tar->priv_keys)   RIFF_FREE(tar->priv_keys);
-    if (tar->priv_values) RIFF_FREE(tar->priv_values);
+    if (tar->priv_used)   LGS_FREE(tar->priv_used);
+    if (tar->priv_keys)   LGS_FREE(tar->priv_keys);
+    if (tar->priv_values) LGS_FREE(tar->priv_values);
 
     hhmap_zero(INSTANCE)(tar);
 }
@@ -94,18 +94,18 @@ RIFF_API(void) RIFF_INST(hhmap_destroy, INSTANCE)(hhmap(INSTANCE) *tar) {
     Memory
 */
 
-RIFF_API(int) RIFF_INST(hhmap_internal_alloc, INSTANCE)(hhmap(INSTANCE)* tar, size_t cap) {
+LGS_API(int) LGS_INST(hhmap_internal_alloc, INSTANCE)(hhmap(INSTANCE)* tar, size_t cap) {
     tar->priv_size = 0;
     tar->priv_capc = cap;
 
-    tar->priv_used   = (char*)RIFF_ALLOC(tar->priv_capc * sizeof(char));
-    tar->priv_keys   = (KEY*) RIFF_ALLOC(tar->priv_capc * sizeof(KEY));
-    tar->priv_values = (VAL*) RIFF_ALLOC(tar->priv_capc * sizeof(VAL));
+    tar->priv_used   = (char*)LGS_ALLOC(tar->priv_capc * sizeof(char));
+    tar->priv_keys   = (KEY*) LGS_ALLOC(tar->priv_capc * sizeof(KEY));
+    tar->priv_values = (VAL*) LGS_ALLOC(tar->priv_capc * sizeof(VAL));
 
     if (!tar->priv_used || !tar->priv_keys || !tar->priv_values) {
-        if (tar->priv_used)   RIFF_FREE(tar->priv_used);
-        if (tar->priv_keys)   RIFF_FREE(tar->priv_keys);
-        if (tar->priv_values) RIFF_FREE(tar->priv_values);
+        if (tar->priv_used)   LGS_FREE(tar->priv_used);
+        if (tar->priv_keys)   LGS_FREE(tar->priv_keys);
+        if (tar->priv_values) LGS_FREE(tar->priv_values);
         return ERR;
     }
 
@@ -113,37 +113,37 @@ RIFF_API(int) RIFF_INST(hhmap_internal_alloc, INSTANCE)(hhmap(INSTANCE)* tar, si
     return SCC;
 }
 
-RIFF_API(int) RIFF_INST(hhmap_push, INSTANCE)(hhmap(INSTANCE)* tar, KEY key, VAL value); // forward
+LGS_API(int) LGS_INST(hhmap_push, INSTANCE)(hhmap(INSTANCE)* tar, KEY key, VAL value); // forward
 
 // Rebuild internal arrays inside hashhmap
 // May fail (new_capacity to small to fit, or allocation failure), O(n)
-#define hhmap_rehash(inst) RIFF_INST(hhmap_rehash, inst)
+#define hhmap_rehash(inst) LGS_INST(hhmap_rehash, inst)
 
-RIFF_API(int) RIFF_INST(hhmap_rehash, INSTANCE)(hhmap(INSTANCE)* tar, size_t new_capacity) {
+LGS_API(int) LGS_INST(hhmap_rehash, INSTANCE)(hhmap(INSTANCE)* tar, size_t new_capacity) {
     // null state now, just alloc
-    if (tar->priv_capc == 0) return RIFF_INST(hhmap_internal_alloc, INSTANCE)(tar, new_capacity);
+    if (tar->priv_capc == 0) return LGS_INST(hhmap_internal_alloc, INSTANCE)(tar, new_capacity);
 
     // alloc new map
     if (new_capacity < tar->priv_size) return ERR;
-    hhmap(INSTANCE) new_map; if (RIFF_INST(hhmap_internal_alloc, INSTANCE)(&new_map, new_capacity) == ERR) return ERR;
+    hhmap(INSTANCE) new_map; if (LGS_INST(hhmap_internal_alloc, INSTANCE)(&new_map, new_capacity) == ERR) return ERR;
 
     // reinsert items into new map
     for (size_t i = 0; i < tar->priv_capc; ++i) {
         if (tar->priv_used[i] != HASH_FULL) continue;
-        int scc = RIFF_INST(hhmap_push, INSTANCE)(&new_map, tar->priv_keys[i], tar->priv_values[i]);
+        int scc = LGS_INST(hhmap_push, INSTANCE)(&new_map, tar->priv_keys[i], tar->priv_values[i]);
         
         // if failed to insert, destroy partialy created nao
         if (scc != SCC) {
-            RIFF_INST(hhmap_destroy, INSTANCE)(&new_map);
+            LGS_INST(hhmap_destroy, INSTANCE)(&new_map);
             return ERR;
         }
     }
 
     // delete old arrays
     // do not use hhmap_destroy not to call destructors
-    RIFF_FREE(tar->priv_used);
-    RIFF_FREE(tar->priv_keys);
-    RIFF_FREE(tar->priv_values);
+    LGS_FREE(tar->priv_used);
+    LGS_FREE(tar->priv_keys);
+    LGS_FREE(tar->priv_values);
 
     // if everything succeded move new map into old map
     *tar = new_map;
@@ -157,19 +157,19 @@ RIFF_API(int) RIFF_INST(hhmap_rehash, INSTANCE)(hhmap(INSTANCE)* tar, size_t new
 // Inserts new or replace value at given key
 // Given key and value are owned by the hashhmap on success
 // May fail (if failed to resize), O(1) avg O(n) worst
-#define hhmap_push(inst) RIFF_INST(hhmap_push, inst)
+#define hhmap_push(inst) LGS_INST(hhmap_push, inst)
 
-RIFF_API(int) RIFF_INST(hhmap_push, INSTANCE)(hhmap(INSTANCE)* tar, KEY key, VAL value) {
+LGS_API(int) LGS_INST(hhmap_push, INSTANCE)(hhmap(INSTANCE)* tar, KEY key, VAL value) {
     // If none memory assigned, allocate
     if (tar->priv_capc == 0) {
-        int scc = RIFF_INST(hhmap_internal_alloc, INSTANCE)(tar, INIT_CAPC);
+        int scc = LGS_INST(hhmap_internal_alloc, INSTANCE)(tar, INIT_CAPC);
         if (scc == ERR) return ERR; // allocation failed
     }
 
     // Double memory if load factor exceeds 0.7
     if ((tar->priv_size + 1) * 10 > tar->priv_capc * 7) {
         // grow, if grow fails try to fit anyway - there still may be some free spots in the array
-        RIFF_INST(hhmap_rehash, INSTANCE)(tar, tar->priv_capc * 2);
+        LGS_INST(hhmap_rehash, INSTANCE)(tar, tar->priv_capc * 2);
     }
 
     size_t idx = HASH(&key) % tar->priv_capc;
@@ -213,9 +213,9 @@ RIFF_API(int) RIFF_INST(hhmap_push, INSTANCE)(hhmap(INSTANCE)* tar, KEY key, VAL
 // Note changing the hasmap may lead to invalidation of returned values!
 // *key and *value may be NULL
 // May fail (if no given key), O(1) avg O(n) worst
-#define hhmap_find(inst) RIFF_INST(hhmap_find, inst)
+#define hhmap_find(inst) LGS_INST(hhmap_find, inst)
 
-RIFF_API(int) RIFF_INST(hhmap_find, INSTANCE)(hhmap(INSTANCE)* tar, KEY user_key, const KEY** inner_key, VAL** value) {
+LGS_API(int) LGS_INST(hhmap_find, INSTANCE)(hhmap(INSTANCE)* tar, KEY user_key, const KEY** inner_key, VAL** value) {
     if (tar->priv_capc == 0) return ERR; // empty map -> nothing can be found
 
     size_t idx = HASH(&user_key) % tar->priv_capc;
@@ -245,9 +245,9 @@ RIFF_API(int) RIFF_INST(hhmap_find, INSTANCE)(hhmap(INSTANCE)* tar, KEY user_key
 //
 // if out is NULL, stored value will be destructed (if destructor provided)
 // otherwise it will be moved into *out
-#define hhmap_pop(inst) RIFF_INST(hhmap_pop, inst)
+#define hhmap_pop(inst) LGS_INST(hhmap_pop, inst)
 
-RIFF_API(void) RIFF_INST(hhmap_pop, INSTANCE)(hhmap(INSTANCE)* tar, const KEY* INNER_key, VAL* out) {
+LGS_API(void) LGS_INST(hhmap_pop, INSTANCE)(hhmap(INSTANCE)* tar, const KEY* INNER_key, VAL* out) {
     size_t pos = INNER_key - tar->priv_keys;
 
     if (out)  *out = tar->priv_values[pos];
@@ -260,9 +260,9 @@ RIFF_API(void) RIFF_INST(hhmap_pop, INSTANCE)(hhmap(INSTANCE)* tar, const KEY* I
 
 // Clears map
 // O(n)
-#define hhmap_clear(inst) RIFF_INST(hhmap_clear, inst)
+#define hhmap_clear(inst) LGS_INST(hhmap_clear, inst)
 
-RIFF_API(void) RIFF_INST(hhmap_clear, INSTANCE)(hhmap(INSTANCE)* tar) {
+LGS_API(void) LGS_INST(hhmap_clear, INSTANCE)(hhmap(INSTANCE)* tar) {
     for (size_t i = 0; i < tar->priv_capc; i++) {
         if (tar->priv_used[i] == HASH_FULL) {
             KEY_DEST(&tar->priv_keys[i]);

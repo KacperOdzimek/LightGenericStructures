@@ -17,9 +17,9 @@
     Unpack and Helpers
 */
 
-#define INSTANCE   RIFF_FIRST(T)
-#define STORED     RIFF_SECOND(T)
-#define DESTRUCTOR RIFF_THIRD(T)
+#define INSTANCE   LGS_FIRST(T)
+#define STORED     LGS_SECOND(T)
+#define DESTRUCTOR LGS_THIRD(T)
 
 /*
     Typedef
@@ -28,7 +28,7 @@
 // Queue (queue)
 // Standard queue structure, implemented as circular buffer, O(1) push and pop
 // O(n) memory complexity
-#define queue(inst) RIFF_INST(queue, inst)
+#define queue(inst) LGS_INST(queue, inst)
 
 typedef struct queue(INSTANCE) {
     size_t  priv_front; // inc
@@ -43,9 +43,9 @@ typedef struct queue(INSTANCE) {
 
 // Makes unitialized memory proper 0-initialized empty queue
 // Does not free anything
-#define queue_zero(inst) RIFF_INST(queue_zero, inst)
+#define queue_zero(inst) LGS_INST(queue_zero, inst)
 
-RIFF_API(void) queue_zero(INSTANCE)(queue(INSTANCE)* tar) {
+LGS_API(void) queue_zero(INSTANCE)(queue(INSTANCE)* tar) {
     tar->priv_front = 0;
     tar->priv_end   = 0;
     tar->priv_capc  = 0;
@@ -54,9 +54,9 @@ RIFF_API(void) queue_zero(INSTANCE)(queue(INSTANCE)* tar) {
 
 // Properly destroys given queue
 // O(n) if destructor definied, O(1) otherwise
-#define queue_destroy(inst) RIFF_INST(queue_destroy, inst)
+#define queue_destroy(inst) LGS_INST(queue_destroy, inst)
 
-RIFF_API(void) queue_destroy(INSTANCE)(queue(INSTANCE)* tar) {
+LGS_API(void) queue_destroy(INSTANCE)(queue(INSTANCE)* tar) {
     if (tar->priv_data) {
         while (tar->priv_front != tar->priv_end) {
             DESTRUCTOR(&tar->priv_data[tar->priv_front]);
@@ -64,7 +64,7 @@ RIFF_API(void) queue_destroy(INSTANCE)(queue(INSTANCE)* tar) {
         }
     }
 
-    RIFF_FREE(tar->priv_data);
+    LGS_FREE(tar->priv_data);
     queue_zero(INSTANCE)(tar);
 }
 
@@ -74,17 +74,17 @@ RIFF_API(void) queue_destroy(INSTANCE)(queue(INSTANCE)* tar) {
 
 // Returns whether the queue is empty
 // O(1)
-#define queue_empty(inst) RIFF_INST(queue_empty, inst)
+#define queue_empty(inst) LGS_INST(queue_empty, inst)
 
-RIFF_API(int) queue_empty(INSTANCE)(queue(INSTANCE)* tar) {
+LGS_API(int) queue_empty(INSTANCE)(queue(INSTANCE)* tar) {
     return tar->priv_front == tar->priv_end;
 }
 
 // Returns amount of elements inside queue
 // O(1)
-#define queue_size(inst) RIFF_INST(queue_size, inst)
+#define queue_size(inst) LGS_INST(queue_size, inst)
 
-RIFF_API(size_t) queue_size(INSTANCE)(queue(INSTANCE)* tar) {
+LGS_API(size_t) queue_size(INSTANCE)(queue(INSTANCE)* tar) {
     return (tar->priv_front <= tar->priv_end) ?
         (tar->priv_end - tar->priv_front) :                 // when not wrapped
         (tar->priv_capc - tar->priv_front + tar->priv_end); // when wrapped
@@ -96,13 +96,13 @@ RIFF_API(size_t) queue_size(INSTANCE)(queue(INSTANCE)* tar) {
 
 // Pushes element at the queue's end
 // May fail (if need to alloc/realloc circular buffer), O(1) avg
-#define queue_push(inst) RIFF_INST(queue_push, inst)
+#define queue_push(inst) LGS_INST(queue_push, inst)
 
-RIFF_API(int) queue_push(INSTANCE)(queue(INSTANCE)* tar, STORED val) {
+LGS_API(int) queue_push(INSTANCE)(queue(INSTANCE)* tar, STORED val) {
     // queue 0-init
     if (tar->priv_capc == 0) {
         size_t  new_capc = 4;
-        STORED* new_data = RIFF_ALLOC(new_capc * sizeof(STORED));
+        STORED* new_data = LGS_ALLOC(new_capc * sizeof(STORED));
 
         if (!new_data) return ERR;
 
@@ -114,7 +114,7 @@ RIFF_API(int) queue_push(INSTANCE)(queue(INSTANCE)* tar, STORED val) {
         // can realloc without invalidation (elements order == memory order), O(1) case
         if (tar->priv_front <= tar->priv_end) {
             size_t  new_capc = tar->priv_capc * 2;
-            STORED* new_data = RIFF_REALLOC(tar->priv_data, new_capc * sizeof(STORED));
+            STORED* new_data = LGS_REALLOC(tar->priv_data, new_capc * sizeof(STORED));
 
             if (!new_data) return ERR;
             
@@ -124,7 +124,7 @@ RIFF_API(int) queue_push(INSTANCE)(queue(INSTANCE)* tar, STORED val) {
         // cannot call realloc without invalidation O(n) case
         else {
             size_t  new_capc = tar->priv_capc * 2;
-            STORED* new_data = RIFF_ALLOC(new_capc * sizeof(STORED));
+            STORED* new_data = LGS_ALLOC(new_capc * sizeof(STORED));
 
             if (!new_data) return ERR;
             
@@ -132,7 +132,7 @@ RIFF_API(int) queue_push(INSTANCE)(queue(INSTANCE)* tar, STORED val) {
             size_t size = queue_size(INSTANCE)(tar);
             for (size_t i = 0; i < size; i++) new_data[i] = tar->priv_data[(tar->priv_front + i) % tar->priv_capc];
             
-            RIFF_FREE(tar->priv_data);
+            LGS_FREE(tar->priv_data);
 
             tar->priv_data  = new_data;
             tar->priv_capc  = new_capc;
@@ -151,9 +151,9 @@ RIFF_API(int) queue_push(INSTANCE)(queue(INSTANCE)* tar, STORED val) {
 // Returns pointer to the element at the queue's front
 // Retruns NULL if no queue empty
 // O(1)
-#define queue_top(inst) RIFF_INST(queue_top, inst)
+#define queue_top(inst) LGS_INST(queue_top, inst)
 
-RIFF_API(STORED*) queue_top(INSTANCE)(queue(INSTANCE)* tar) {
+LGS_API(STORED*) queue_top(INSTANCE)(queue(INSTANCE)* tar) {
     if (queue_empty(INSTANCE)(tar)) return NULL;
     return &tar->priv_data[tar->priv_front];
 }
@@ -162,9 +162,9 @@ RIFF_API(STORED*) queue_top(INSTANCE)(queue(INSTANCE)* tar) {
 // If   out == NULL the element will be destructed
 // Else *out = element and the caller does own the element on from now
 // May fail (empty queue), O(1)
-#define queue_pop(inst) RIFF_INST(queue_pop, inst)
+#define queue_pop(inst) LGS_INST(queue_pop, inst)
 
-RIFF_API(int) queue_pop(INSTANCE)(queue(INSTANCE)* tar, STORED* out) {
+LGS_API(int) queue_pop(INSTANCE)(queue(INSTANCE)* tar, STORED* out) {
     if (queue_empty(INSTANCE)(tar)) return ERR;
 
     // tranfer or destroy
