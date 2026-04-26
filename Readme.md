@@ -38,3 +38,10 @@ Collection of header only, C utilities - macros, structures and algorithms, desi
 
 ## State of development
 Not mature yet. Still playing with core api.
+
+## Install on Linux
+
+```bash
+git clone https://github.com/KacperOdzimek/LightGenericStructures
+sudo cp -r LightGenericStructures/include/lgs /usr/local/include/
+```
